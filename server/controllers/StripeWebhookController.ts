@@ -42,9 +42,10 @@ export const stripeWebhook = async (req: Request, res: Response) => {
         const plan = session.metadata?.plan || "free";
 
         if(userId){
+            const normalizedPlan = plan.toLowerCase();
             await User.findByIdAndUpdate(userId, {
-                plan,
-                credits: planCredits[plan]
+                plan: normalizedPlan,
+                credits: planCredits[normalizedPlan] || 3
             })
             console.log(`Updated user ${userId} to plan ${plan}`);
 
