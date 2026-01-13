@@ -13,6 +13,10 @@ const planCredits: Record<string, number> = {
 
 export const stripeWebhook = async (req: Request, res: Response) => {
 
+    console.log("Webhook received");
+    console.log("Headers:", req.headers);
+    console.log("Body:", req.body.toString());
+
     const sig = req.header("stripe-signature");
 
     if (!sig) {

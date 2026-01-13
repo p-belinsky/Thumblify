@@ -4,6 +4,6 @@ import {stripeWebhook} from "../controllers/StripeWebhookController.js";
 
 const StripeWebhookRoute = express.Router()
 
-StripeWebhookRoute.post("/", express.raw({type:"application/json"}), stripeWebhook);
+StripeWebhookRoute.post("/", stripeWebhook);
 
 export default StripeWebhookRoute;

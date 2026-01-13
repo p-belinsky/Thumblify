@@ -45,6 +45,8 @@ app.use(session({
     })
 }));
 
+app.use('/api/payment/webhook', express.raw({type:"application/json"}), StripeWebhookRoute);
+
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
@@ -55,7 +57,7 @@ app.use('/api/auth', AuthRouter);
 app.use('/api/thumbnail', ThumbnailRouter);
 app.use('/api/user', UserRouter);
 app.use('/api/payment', PaymentRouter);
-app.use('/api/payment/webhook', StripeWebhookRoute);
+
 
 const port = process.env.PORT || 3000;
 
