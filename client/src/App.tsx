@@ -10,6 +10,11 @@ import YtPreview from "./pages/YtPreview.tsx";
 import Login from "./components/Login.tsx";
 import {useEffect} from "react";
 import { Toaster } from "react-hot-toast";
+import PaymentPage from "./pages/PaymentPage.tsx";
+import {Elements} from "@stripe/react-stripe-js";
+import stripePromise from "./configs/stripe.ts";
+
+
 
 
 export default function App() {
@@ -35,6 +40,12 @@ export default function App() {
                 <Route path="/preview" element={<YtPreview />} />
                 <Route path="/login" element={<Login />} />
 
+                <Route path="/payment" element={
+                    <Elements stripe={stripePromise}>
+                        <PaymentPage />
+                    </Elements>
+                }
+                />
             </Routes>
             <Footer />
         </>

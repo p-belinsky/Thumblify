@@ -1,13 +1,33 @@
-'use client'
-import SectionTitle from "../components/SectionTitle"
-import { pricingData } from "../data/pricing";
-import type { IPricing } from "../types";
-import { CheckIcon } from "lucide-react";
-import { motion } from "motion/react";
-import {useNavigate} from "react-router-dom";
+import SectionTitle from "../components/SectionTitle.tsx";
+import {pricingData} from "../data/pricing.ts";
+import type {IPricing} from "../types.ts";
+import {motion} from "motion/react";
+import {CheckIcon} from "lucide-react";
+import api from "../configs/api.ts";
 
-export default function PricingSection() {
-    const navigate = useNavigate();
+
+
+function PaymentPage() {
+    
+    const handleSubscribe = async (priceId: string, plan: string) => {
+        try {
+
+            const {data} = await api.post('api/payment/checkout', {
+                priceId,
+                plan
+            },
+                {withCredentials: true});
+
+                if(data.url){
+                    window.location.href = data.url;
+                }
+
+        } catch (error:any) {
+            console.error("Checkout error:", error);
+            alert(error.response?.data?.error || error.message);
+        }
+    }
+    
     return (
         <div id="pricing" className="px-4 md:px-16 lg:px-24 xl:px-32">
             <SectionTitle text1="Pricing" text2="Simple Pricing" text3="Choose the plan that fits your creation schedule. Cancel anytime." />
@@ -15,10 +35,10 @@ export default function PricingSection() {
             <div className="flex flex-wrap items-center justify-center gap-8 mt-20">
                 {pricingData.map((plan: IPricing, index: number) => (
                     <motion.div key={index} className={`w-72 text-center border border-pink-950 p-6 pb-16 rounded-xl ${plan.mostPopular ? 'bg-pink-950 relative' : 'bg-pink-950/30'}`}
-                        initial={{ y: 150, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.15, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                                initial={{ y: 150, opacity: 0 }}
+                                whileInView={{ y: 0, opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.15, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
                         {plan.mostPopular && (
                             <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-pink-400 rounded-full">Most Popular</p>
@@ -33,12 +53,14 @@ export default function PricingSection() {
                                 </li>
                             ))}
                         </ul>
-                        <button onClick={()=>navigate('/payment')} type="button" className={`w-full py-2.5 rounded-md font-medium mt-7 transition-all ${plan.mostPopular ? 'bg-white text-pink-600 hover:bg-slate-200' : 'bg-pink-500 hover:bg-pink-600'}`}>
-                            Get Started
+                        <button onClick={()=> handleSubscribe(plan.stripePriceId, plan.name)} type="button" className={`w-full py-2.5 rounded-md font-medium mt-7 transition-all ${plan.mostPopular ? 'bg-white text-pink-600 hover:bg-slate-200' : 'bg-pink-500 hover:bg-pink-600'}`}>
+                            Subscribe Now
                         </button>
                     </motion.div>
                 ))}
             </div>
         </div>
-    );
+    )
 }
+
+export default PaymentPage

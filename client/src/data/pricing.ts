@@ -12,7 +12,8 @@ export const pricingData: IPricing[] = [
             "No Watermark",
             "Email Support"
         ],
-        mostPopular: false
+        mostPopular: false,
+        stripePriceId: "price_1SpAux4PtpVWSTZ8nQoP5fOa"
     },
     {
         name: "Pro",
@@ -27,7 +28,8 @@ export const pricingData: IPricing[] = [
             "Custom Fonts",
             "Brand Kit Analysis",
         ],
-        mostPopular: true
+        mostPopular: true,
+        stripePriceId: "price_1SpAwU4PtpVWSTZ80mkPs9yw"
     },
     {
         name: "Enterprise",
@@ -40,6 +42,7 @@ export const pricingData: IPricing[] = [
             "Custom Branding",
             "Dedicated Account Manager"
         ],
-        mostPopular: false
+        mostPopular: false,
+        stripePriceId: "price_1SpAxR4PtpVWSTZ8VGgzeFxY"
     }
 ];

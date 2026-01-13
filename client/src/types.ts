@@ -53,6 +53,7 @@ export interface IPricing {
     period: string;
     features: string[];
     mostPopular: boolean;
+    stripePriceId: string;
 }
 
 export interface SectionProps {
