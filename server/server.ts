@@ -8,6 +8,7 @@ import AuthRouter from "./routes/AuthRoute.js";
 import ThumbnailRouter from "./routes/ThumbnailRoute.js";
 import UserRouter from "./routes/UserRoute.js";
 import PaymentRouter from "./routes/PaymentRoute.js";
+import StripeWebhookRoute from "./routes/StripeWebhookRoute.js";
 
 declare module 'express-session' {
     interface SessionData {
@@ -54,6 +55,7 @@ app.use('/api/auth', AuthRouter);
 app.use('/api/thumbnail', ThumbnailRouter);
 app.use('/api/user', UserRouter);
 app.use('/api/payment', PaymentRouter);
+app.use('/api/payment', StripeWebhookRoute);
 
 const port = process.env.PORT || 3000;
 
