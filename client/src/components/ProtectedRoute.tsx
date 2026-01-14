@@ -7,14 +7,19 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { user } = useAuth(); // assume `user` is null/undefined if not logged in
+    const { user, loading } = useAuth();
 
+    // ⏳ wait for auth to resolve
+    if (loading) {
+        return null; // or a spinner
+    }
+
+    // ❌ unauthenticated
     if (!user) {
-        // not logged in → redirect to login
         return <Navigate to="/login" replace />;
     }
 
-    // logged in → show the page
+    // ✅ authenticated
     return <>{children}</>;
 };
 

@@ -9,6 +9,7 @@ interface AuthContextProps {
     setIsLoggedIn: (isLoggedIn: boolean) => void;
     user: IUser | null;
     setUser: (user: IUser | null) => void;
+    loading: boolean;
     login: (user: {email:string; password: string}) => Promise<void>;
     signup: (user: {name:string; email:string; password: string}) => Promise<void>;
     logout: () => Promise<void>;
@@ -22,11 +23,13 @@ const AuthContext = createContext<AuthContextProps>({
     login: async () => {},
     signup: async () => {},
     logout: async () => {},
+    loading: true,
 });
 
 
 export const AuthProvider = ({children} : {children: React.ReactNode}) => {
 
+    const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<IUser | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 
@@ -92,11 +95,12 @@ export const AuthProvider = ({children} : {children: React.ReactNode}) => {
     useEffect(() => {
         (async ()=> {
             await fetchUser();
+            setLoading(false);
         })();
     }, [])
 
     const value = {
-        user, setUser, isLoggedIn, setIsLoggedIn, signup, login, logout
+        user, setUser, isLoggedIn, setIsLoggedIn, signup, login, logout, loading
     }
 
     return (
