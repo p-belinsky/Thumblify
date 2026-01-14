@@ -2,8 +2,6 @@ import {Request, Response} from 'express'
 import Thumbnail from "../models/Thumbnail.js";
 import {GenerateContentConfig, HarmBlockThreshold, HarmCategory} from "@google/genai";
 import ai from "../configs/ai.js";
-import path from "node:path";
-import * as fs from "node:fs";
 import {v2 as cloudinary} from "cloudinary";
 
 const stylePrompts = {
