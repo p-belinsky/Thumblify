@@ -21,6 +21,9 @@ await connectDB();
 
 const app = express();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+
 
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:3000', 'https://thumblify-jet.vercel.app'],
@@ -36,8 +39,8 @@ app.use(session({
     name: 'sessionId',
     cookie: {maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
         path: '/'
     },
     store: MongoStore.create({
