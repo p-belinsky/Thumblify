@@ -13,6 +13,7 @@ import { Toaster } from "react-hot-toast";
 import PaymentPage from "./pages/PaymentPage.tsx";
 import {Elements} from "@stripe/react-stripe-js";
 import stripePromise from "./configs/stripe.ts";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
 
 
 
@@ -34,15 +35,15 @@ export default function App() {
             <Navbar />
             <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/generate" element={<Generate />} />
-                <Route path="/generate/:id" element={<Generate />} />
-                <Route path="/my-generation" element={<MyGeneration />} />
-                <Route path="/preview" element={<YtPreview />} />
+                <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
+                <Route path="/generate/:id" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
+                <Route path="/my-generation" element={<ProtectedRoute><MyGeneration /></ProtectedRoute>} />
+                <Route path="/preview" element={<ProtectedRoute><YtPreview /></ProtectedRoute>} />
                 <Route path="/login" element={<Login />} />
 
                 <Route path="/payment" element={
                     <Elements stripe={stripePromise}>
-                        <PaymentPage />
+                        <ProtectedRoute><PaymentPage /></ProtectedRoute>
                     </Elements>
                 }
                 />
