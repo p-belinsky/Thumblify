@@ -123,7 +123,13 @@ const MyGeneration = () => {
                                             <span className='px-2 py-0.5 rounded bg-white/8'>{thumb.aspect_ratio}</span>
 
                                         </div>
-                                        <p className='text-xs text-zinc-500'>{new Date(thumb.createdAt!).toDateString()}</p>
+                                        <p className='text-xs text-zinc-500'>
+                                            {thumb.createdAt
+                                                ? new Date(thumb.createdAt).toLocaleDateString('en-US', {
+                                                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+                                                })
+                                                : 'Unknown date'}
+                                        </p>
                                     </div>
                                     <div onClick={(e)=>e.stopPropagation()} className='absolute bottom-2 right-2 max-sm:flex sm:hidden group-hover:flex gap-1.5'>
                                         <TrashIcon onClick={()=>handleDelete(thumb._id)} className='size-6 bg-black/50 p-1 rounded hover:bg-pink-600 transition-all'/>
