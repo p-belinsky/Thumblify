@@ -29,6 +29,9 @@ const ThumbnailSchema = new mongoose.Schema<IThumbnail>({
     user_prompt: {type: String},
     isGenerating: {type: Boolean, default: true},
 
+    },
+    {
+        timestamps: true,
     }
 )
 
