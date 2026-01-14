@@ -6,6 +6,7 @@ import {v2 as cloudinary} from "cloudinary";
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import User, {IUser} from "../models/User.js";
 
 const stylePrompts = {
     'Bold & Graphic': 'eye-catching thumbnail, bold typography, vibrant colors, expressive facial reaction, dramatic lighting, high contrast, click-worthy composition, professional style',
@@ -33,6 +34,13 @@ export const generateThumbnail = async (req: Request, res: Response) => {
         if (!userId) {
             return res.status(401).json({message: 'Not logged in'});
         }
+
+        const user= await User.findById(userId).select('-password');
+        if(!user || user.credits === 0){
+            return res.status(401).json({message: 'No credits'});
+        }
+
+
 
         const {
             title,
@@ -128,6 +136,23 @@ export const generateThumbnail = async (req: Request, res: Response) => {
             resource_type: 'image'
         });
 
+        if (!uploadResult?.secure_url) {
+            throw new Error('Failed to upload image to Cloudinary');
+        }
+
+        if(user.plan ==="free" || user.plan === "basic"){
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { $inc: { credits: -1 } },
+                { new: true }
+            );
+            if (!updatedUser) {
+                throw new Error('Failed to update user credits');
+            }
+        }
+
+
+
         // Update thumbnail in DB
         thumbnail.image_url = uploadResult.secure_url;
         thumbnail.isGenerating = false;
@@ -135,6 +160,8 @@ export const generateThumbnail = async (req: Request, res: Response) => {
 
         // Clean up temp file
         fs.unlinkSync(filePath);
+
+
 
         res.json({message: 'Thumbnail Generated', thumbnail});
     } catch (error: any) {
