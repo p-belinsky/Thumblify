@@ -3,6 +3,9 @@ import Thumbnail from "../models/Thumbnail.js";
 import {GenerateContentConfig, HarmBlockThreshold, HarmCategory} from "@google/genai";
 import ai from "../configs/ai.js";
 import {v2 as cloudinary} from "cloudinary";
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const stylePrompts = {
     'Bold & Graphic': 'eye-catching thumbnail, bold typography, vibrant colors, expressive facial reaction, dramatic lighting, high contrast, click-worthy composition, professional style',
@@ -24,10 +27,13 @@ const colorSchemeDescriptions = {
 }
 
 export const generateThumbnail = async (req: Request, res: Response) => {
-
-
     try {
         const {userId} = req.session;
+
+        if (!userId) {
+            return res.status(401).json({message: 'Not logged in'});
+        }
+
         const {
             title,
             prompt: user_prompt,
@@ -37,6 +43,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
             text_overlay
         } = req.body;
 
+        // Create a DB entry first
         const thumbnail = await Thumbnail.create({
             userId,
             title,
@@ -47,9 +54,9 @@ export const generateThumbnail = async (req: Request, res: Response) => {
             color_scheme,
             text_overlay,
             isGenerating: true
-        })
+        });
 
-        const model = 'gemini-3-pro-image-preview'
+        const model = 'gemini-3-pro-image-preview';
 
         const generationConfig: GenerateContentConfig = {
             maxOutputTokens: 32768,
@@ -59,77 +66,83 @@ export const generateThumbnail = async (req: Request, res: Response) => {
             imageConfig: {
                 aspectRatio: aspect_ratio || '16:9',
                 imageSize: '1K',
-
             },
-            safetySettings: [
-                {category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.OFF},
-                {category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.OFF},
-                {category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.OFF},
-                {category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.OFF},
-            ]
+            safetySettings: [{
+                category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold: HarmBlockThreshold.OFF
+            }, {
+                category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold: HarmBlockThreshold.OFF
+            }, {
+                category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold: HarmBlockThreshold.OFF
+            }, {category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.OFF},]
         }
 
-        let prompt = `Create a ${stylePrompts[style as keyof typeof stylePrompts]} for "${title}"`
+        // Build prompt
+        let promptText = `Create a ${stylePrompts[style as keyof typeof stylePrompts]} for "${title}"`;
 
         if (color_scheme) {
-            prompt += `Use a ${colorSchemeDescriptions[color_scheme as keyof typeof colorSchemeDescriptions]} color scheme.`
-
+            promptText += ` Use a ${colorSchemeDescriptions[color_scheme as keyof typeof colorSchemeDescriptions]} color scheme.`;
         }
 
         if (user_prompt) {
-            prompt += `Additional details: ${user_prompt}.`
+            promptText += ` Additional details: ${user_prompt}.`;
         }
 
-        prompt += `The thumbnail should be ${aspect_ratio}, visually stunning, and designed to maximize click-through rate. Make it bold, professional, and impossible to ignore.`
+        promptText += ` The thumbnail should be ${aspect_ratio}, visually stunning, bold, professional, and impossible to ignore.`;
 
+        // Generate image
         const response: any = await ai.models.generateContent({
             model,
-            contents: [prompt],
+            contents: [promptText],
             config: generationConfig
-        })
+        });
 
         if (!response?.candidates?.[0]?.content?.parts) {
-            throw new Error('Unexpected response')
+            throw new Error('Unexpected AI response');
         }
 
         const parts = response.candidates[0].content.parts;
-
         let finalBuffer: Buffer | null = null;
 
         for (const part of parts) {
             if (part.inlineData) {
-                finalBuffer = Buffer.from(part.inlineData.data, 'base64')
+                finalBuffer = Buffer.from(part.inlineData.data, 'base64');
             }
         }
 
-        if (!finalBuffer) throw new Error('No image generated');
+        if (!finalBuffer) {
+            throw new Error('Failed to generate image');
+        }
 
-        const uploadResult = await cloudinary.uploader.upload_stream(
-            { folder: 'thumblify', resource_type: 'image' },
-            async (error, result) => {
-                if (error) return res.status(500).json({ message: error.message });
+        // Use Vercel temp directory
+        const tempDir = os.tmpdir();
+        const filename = `thumbnail-${Date.now()}.png`;
+        const filePath = path.join(tempDir, filename);
 
-                thumbnail.image_url = result?.secure_url;
-                thumbnail.isGenerating = false;
-                await thumbnail.save();
+        fs.writeFileSync(filePath, finalBuffer);
 
-                res.json({ message: 'Thumbnail Generated', thumbnail });
-            }
-        );
+        // Upload to Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(filePath, {
+            resource_type: 'image'
+        });
 
-        const stream = require('stream');
-        const bufferStream = new stream.PassThrough();
-        bufferStream.end(finalBuffer);
-        bufferStream.pipe(uploadResult);
+        // Update thumbnail in DB
+        thumbnail.image_url = uploadResult.secure_url;
+        thumbnail.isGenerating = false;
+        await thumbnail.save();
 
+        // Clean up temp file
+        fs.unlinkSync(filePath);
 
-
-
+        res.json({message: 'Thumbnail Generated', thumbnail});
     } catch (error: any) {
-        console.log(error);
+        console.error('generateThumbnail error:', error);
         res.status(500).json({message: error.message});
     }
-}
+};
+
 
 export const deleteThumbnail = async (req: Request, res: Response) => {
     try {
@@ -139,7 +152,7 @@ export const deleteThumbnail = async (req: Request, res: Response) => {
         await Thumbnail.findByIdAndDelete({_id: id, userId});
 
         res.json({message: 'Thumbnail deleted successfully.'});
-    }catch (error: any) {
+    } catch (error: any) {
         console.log(error);
         res.status(500).json({message: error.message});
     }
