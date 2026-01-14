@@ -33,10 +33,11 @@ app.use(session({
     secret: process.env.SESSION_SECRET as string,
     resave: false,
     saveUninitialized: false,
+    name: 'sessionId',
     cookie: {maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite:  process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: true,
+        sameSite: 'lax',
         path: '/'
     },
     store: MongoStore.create({
