@@ -55,6 +55,9 @@ const Generate = () => {
                 navigate('/generate/' + data.thumbnail._id);
                 toast.success(data.message)
 
+            } else {
+                toast.error(data.message);
+                setLoading(false);
             }
     }
 
