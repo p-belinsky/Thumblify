@@ -33,32 +33,35 @@ const Generate = () => {
 
 
     const handleGenerate = async () => {
-        if(!isLoggedIn) {
+        if (!isLoggedIn) {
             return toast.error("Please login to generate thumbnails");
         }
-            if(!title.trim()){
-                return toast.error("Title is required");
+        if (!title.trim()) {
+            return toast.error("Title is required");
         }
-            setLoading(true);
+        setLoading(true);
 
-            const apiPayload = {
-                title,
-                prompt: additionalDetails,
-                style,
-                aspect_ratio: aspectRatio,
-                color_scheme: colorSchemeId,
-                text_overlay: true
-            }
+        const apiPayload = {
+            title,
+            prompt: additionalDetails,
+            style,
+            aspect_ratio: aspectRatio,
+            color_scheme: colorSchemeId,
+            text_overlay: true
+        }
 
+        try {
             const {data} = await api.post('/api/thumbnail/generate', apiPayload);
-            if(data.thumbnail){
+            if (data.thumbnail) {
                 navigate('/generate/' + data.thumbnail._id);
                 toast.success(data.message)
-
-            } else {
-                toast.error(data.message);
-                setLoading(false);
             }
+
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.response?.data?.message || error.message);
+            setLoading(false);
+        }
     }
 
     const fetchThumbnail = async () => {
